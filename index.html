@@ -30,7 +30,7 @@
       border-radius: 6px;
       border: none;
       cursor: pointer;
-      margin: 0 0.25rem;
+      margin: 0.25rem;
     }
 
     .cozy {
@@ -47,8 +47,14 @@
       border-radius: 16px;
       background-color: rgba(255,255,255,0.05);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+    }
+
+    #reels {
+      font-size: 2rem;
+      margin-bottom: 1rem;
     }
   </style>
 </head>
@@ -62,15 +68,55 @@
     </div>
 
     <div class="slot-frame">
-      <p>🎰 Slot Machine Placeholder</p>
+      <div id="reels">🍒 🍒 🍒</div>
+      <div>Credits: <span id="credits">10</span></div>
+      <button onclick="spin()">Spin</button>
+      <div id="result"></div>
     </div>
 
   </div>
 
   <script>
     function setMode(mode) {
-      const app = document.getElementById('app');
-      app.className = 'app ' + mode;
+      document.getElementById("app").className = "app " + mode;
+    }
+
+    let credits = 10;
+    const symbols = ["🍒", "🍋", "⭐", "🔔", "💎"];
+
+    function spin() {
+      if (credits <= 0) {
+        document.getElementById("result").textContent = "Out of credits.";
+        return;
+      }
+
+      credits--;
+
+      const reel1 = symbols[random()];
+      const reel2 = symbols[random()];
+      const reel3 = symbols[random()];
+
+      document.getElementById("reels").textContent =
+        `${reel1} ${reel2} ${reel3}`;
+
+      let win = 0;
+
+      if (reel1 === reel2 && reel2 === reel3) {
+        win = 5;
+        document.getElementById("result").textContent = "Jackpot! +5 credits";
+      } else if (reel1 === reel2 || reel2 === reel3 || reel1 === reel3) {
+        win = 2;
+        document.getElementById("result").textContent = "Small win! +2 credits";
+      } else {
+        document.getElementById("result").textContent = "No win.";
+      }
+
+      credits += win;
+      document.getElementById("credits").textContent = credits;
+    }
+
+    function random() {
+      return Math.floor(Math.random() * symbols.length);
     }
   </script>
 </body>
