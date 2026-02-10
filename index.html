@@ -53,7 +53,7 @@
       padding-top: 20px;
     }
 
-    /* NEW reel box layout */
+    /* Reel layout */
     .reels {
       display: flex;
       gap: 10px;
@@ -70,6 +70,16 @@
       justify-content: center;
       align-items: center;
     }
+
+    /* Animation */
+    .spin-anim {
+      animation: spin 0.3s linear infinite;
+    }
+
+    @keyframes spin {
+      from { opacity: 0.3; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
   </style>
 </head>
 
@@ -83,7 +93,6 @@
 
     <div class="slot-frame">
 
-      <!-- NEW reel layout -->
       <div id="reels" class="reels">
         <div class="reel" id="reel1">🍒</div>
         <div class="reel" id="reel2">🍒</div>
@@ -93,6 +102,7 @@
       <div>Credits: <span id="credits">10</span></div>
       <button onclick="spin()">Spin</button>
       <div id="result"></div>
+
     </div>
 
   </div>
@@ -120,29 +130,45 @@
 
     credits--;
 
-    const reel1 = symbols[random()];
-    const reel2 = symbols[random()];
-    const reel3 = symbols[random()];
+    const r1 = document.getElementById("reel1");
+    const r2 = document.getElementById("reel2");
+    const r3 = document.getElementById("reel3");
 
-    // NEW: set each reel box individually
-    document.getElementById("reel1").textContent = reel1;
-    document.getElementById("reel2").textContent = reel2;
-    document.getElementById("reel3").textContent = reel3;
+    // Start animation
+    r1.classList.add("spin-anim");
+    r2.classList.add("spin-anim");
+    r3.classList.add("spin-anim");
 
-    let win = 0;
+    // Stop + reveal after delay
+    setTimeout(() => {
+      const reel1 = symbols[random()];
+      const reel2 = symbols[random()];
+      const reel3 = symbols[random()];
 
-    if (reel1 === reel2 && reel2 === reel3) {
-      win = 5;
-      document.getElementById("result").textContent = "Jackpot! +5 credits";
-    } else if (reel1 === reel2 || reel2 === reel3 || reel1 === reel3) {
-      win = 2;
-      document.getElementById("result").textContent = "Small win! +2 credits";
-    } else {
-      document.getElementById("result").textContent = "No win.";
-    }
+      r1.textContent = reel1;
+      r2.textContent = reel2;
+      r3.textContent = reel3;
 
-    credits += win;
-    document.getElementById("credits").textContent = credits;
+      r1.classList.remove("spin-anim");
+      r2.classList.remove("spin-anim");
+      r3.classList.remove("spin-anim");
+
+      let win = 0;
+
+      if (reel1 === reel2 && reel2 === reel3) {
+        win = 5;
+        document.getElementById("result").textContent = "Jackpot! +5 credits";
+      } else if (reel1 === reel2 || reel2 === reel3 || reel1 === reel3) {
+        win = 2;
+        document.getElementById("result").textContent = "Small win! +2 credits";
+      } else {
+        document.getElementById("result").textContent = "No win.";
+      }
+
+      credits += win;
+      document.getElementById("credits").textContent = credits;
+
+    }, 600);
   }
 
   function random() {
