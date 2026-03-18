@@ -66,6 +66,15 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    /* Win Highlight Effect */
+    .win-glow {
+      box-shadow: 0 0 20px #ffd700;
+      transform: scale(1.1);
+      background: rgba(255, 215, 0, 0.2);
+      border: 2px solid #ffd700;
     }
 
     .spin-anim {
@@ -155,42 +164,58 @@ function spin() {
   credits--;
   document.getElementById("credits").textContent = credits;
 
-  // show spinning text
+  // reset visuals and show spinning text
   document.getElementById("result").textContent = "Spinning...";
-
   const r1 = document.getElementById("reel1");
   const r2 = document.getElementById("reel2");
   const r3 = document.getElementById("reel3");
+  
+  [r1, r2, r3].forEach(r => {
+    r.classList.remove("win-glow");
+    r.classList.add("spin-anim");
+  });
 
-  // start animation
-  r1.classList.add("spin-anim");
-  r2.classList.add("spin-anim");
-  r3.classList.add("spin-anim");
+  // Pre-calculate result grid
+  const grid = [
+    [rand(), rand(), rand()],
+    [rand(), rand(), rand()],
+    [rand(), rand(), rand()]
+  ];
 
-  // start shuffle
+  // Logic flags for staggered stopping
+  let r1Spinning = true;
+  let r2Spinning = true;
+  let r3Spinning = true;
+
+  // Shuffle animation
   const shuffleInterval = setInterval(() => {
-    r1.textContent = rand();
-    r2.textContent = rand();
-    r3.textContent = rand();
+    if (r1Spinning) r1.textContent = rand();
+    if (r2Spinning) r2.textContent = rand();
+    if (r3Spinning) r3.textContent = rand();
   }, 100);
 
-  // stop + calculate result
+  // Staggered stop times (Total duration ~1.1s)
+  
+  // Reel 1 stops
   setTimeout(() => {
-    clearInterval(shuffleInterval);
-
-    const grid = [
-      [rand(), rand(), rand()],
-      [rand(), rand(), rand()],
-      [rand(), rand(), rand()]
-    ];
-
-    r1.textContent = grid[1][0];
-    r2.textContent = grid[1][1];
-    r3.textContent = grid[1][2];
-
+    r1Spinning = false;
     r1.classList.remove("spin-anim");
+    r1.textContent = grid[1][0];
+  }, 600);
+
+  // Reel 2 stops
+  setTimeout(() => {
+    r2Spinning = false;
     r2.classList.remove("spin-anim");
+    r2.textContent = grid[1][1];
+  }, 850);
+
+  // Reel 3 stops + calculation
+  setTimeout(() => {
+    r3Spinning = false;
     r3.classList.remove("spin-anim");
+    r3.textContent = grid[1][2];
+    clearInterval(shuffleInterval);
 
     let totalWin = 0;
     let winLines = 0;
@@ -211,11 +236,14 @@ function spin() {
       document.getElementById("credits").textContent = credits;
       document.getElementById("result").textContent =
         `WIN! ${winLines} line(s) — +${totalWin} credits`;
+      
+      // Add win feedback
+      [r1, r2, r3].forEach(r => r.classList.add("win-glow"));
     } else {
       document.getElementById("result").textContent = "No win.";
     }
 
-  }, 900);
+  }, 1100);
 }
 
 function rand() {
@@ -225,3 +253,4 @@ function rand() {
 
 </body>
 </html>
+
