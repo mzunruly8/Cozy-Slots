@@ -161,8 +161,13 @@ function spin() {
   r1.classList.add("spin-anim");
   r2.classList.add("spin-anim");
   r3.classList.add("spin-anim");
-
+const shuffleInterval = setInterval(() => {
+  r1.textContent = rand();
+  r2.textContent = rand();
+  r3.textContent = rand();
+}, 100); 
   setTimeout(() => {
+    clearInterval(shuffleInterval);
     const grid = [
       [rand(), rand(), rand()],
       [rand(), rand(), rand()],
@@ -200,7 +205,7 @@ function spin() {
       document.getElementById("result").textContent = "No win.";
     }
 
-  }, 600);
+  }, 900);
 }
 
 function rand() {
