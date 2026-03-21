@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cozy Slots — Enhanced</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background-color: #1e1e1e;
+      color: #f4f4f4;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cozy {
+      background: linear-gradient(#2b2a26, #1f1e1b);
+    }
+
+    .neon {
+      background: linear-gradient(#0f1020, #090914);
+    }
+
+    .slot-frame {
+      width: 320px;
+      border-radius: 16px;
+      background-color: rgba(255,255,255,0.05);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .reels {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .reel {
+      width: 70px;
+      height: 70px;
+      font-size: 2rem;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .win-glow {
+      box-shadow: 0 0 20px #ffd700;
+      transform: scale(1.1);
+      background: rgba(255, 215, 0, 0.2);
+      border: 2px solid #ffd700;
+    }
+
+    .shake {
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+
+    #result {
+      margin-top: 10px;
+      min-height: 24px;
+    }
+
+    /* Paytable Modal */
+    #paytable {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #222;
+      padding: 20px;
+      border-radius: 12px;
+      display: none;
+      z-index: 10;
+    }
+
+    #paytable table {
+      color: white;
+      margin-top: 10px;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      z-index: 5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app cozy" id="app">
+
+    <div class="mode-toggle">
+      <button onclick="setMode('cozy')">Home Cozy</button>
+      <button onclick="setMode('neon')">Neon Arcade</button>
+    </div>
+
+    <div class="slot-frame">
+
+      <div id="reels" class="reels">
+        <div class="reel" id="reel1">🍒</div>
+        <div class="reel" id="reel2">🍒</div>
+        <div class="reel" id="reel3">🍒</div>
+      </div>
+
+      <div>Credits: <span id="credits">10</span></div>
+
+      <div>
+        Bet:
+        <select id="bet">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="5">5</option>
+        </select>
+      </div>
+
+      <button onclick="spin()">Spin</button>
+      <button onclick="showPaytable()">Paytable</button>
+
+      <div id="result"></div>
+
+    </div>
+
+    <div id="overlay" onclick="closePaytable()"></div>
+
+    <div id="paytable">
+      <h3>Paytable</h3>
+      <table>
+        <tr><td>🍒</td><td>3</td></tr>
+        <tr><td>🍋</td><td>4</td></tr>
+        <tr><td>⭐</td><td>5</td></tr>
+        <tr><td>🔔</td><td>8</td></tr>
+        <tr><td>💎</td><td>12</td></tr>
+      </table>
+      <button onclick="closePaytable()">Close</button>
+    </div>
+
+    <!-- Sounds -->
+    <audio id="spinSound" src="spin.mp3"></audio>
+    <audio id="stopSound" src="stop.mp3"></audio>
+    <audio id="winSound" src="win.mp3"></audio>
+
+  </div>
+
+<script>
+function setMode(mode) {
+  const app = document.getElementById("app");
+  app.className = "app " + mode;
+  localStorage.setItem("cozySlotsMode", mode);
+}
+
+const savedMode = localStorage.getItem("cozySlotsMode");
+if (savedMode) {
+  document.getElementById("app").className = "app " + savedMode;
+}
+
+let credits = 10;
+document.getElementById("credits").textContent = credits;
+
+const reelStrip = [
+  "🍒","🍒","🍒",
+  "🍋","🍋",
+  "⭐","⭐",
+  "🔔",
+  "💎"
+];
+
+const payouts = {
+  "🍒": 3,
+  "🍋": 4,
+  "⭐": 5,
+  "🔔": 8,
+  "💎": 12
+};
+
+function randSymbol() {
+  return reelStrip[Math.floor(Math.random() * reelStrip.length)];
+}
+
+function animateReel(reel, duration) {
+  const start = Date.now();
+  reel.classList.add("spin-anim");
+
+  const loop = () => {
+    if (Date.now() - start < duration) {
+      reel.textContent = randSymbol();
+      requestAnimationFrame(loop);
+    }
+  };
+  loop();
+}
+
+function spin() {
+  const bet = Number(document.getElementById("bet").value);
+
+  if (credits < bet) {
+    result.textContent = "Not enough credits.";
+    return;
+  }
+
+  credits -= bet;
+  document.getElementById("credits").textContent = credits;
+
+  const r1 = document.getElementById("reel1");
+  const r2 = document.getElementById("reel2");
+  const r3 = document.getElementById("reel3");
+
+  [r1, r2, r3].forEach(r => r.classList.remove("win-glow", "shake"));
+
+  document.getElementById("spinSound").play();
+
+  animateReel(r1, 600);
+  animateReel(r2, 850);
+  animateReel(r3, 1100);
+
+  setTimeout(() => document.getElementById("stopSound").play(), 600);
+  setTimeout(() => document.getElementById("stopSound").play(), 850);
+  setTimeout(() => document.getElementById("stopSound").play(), 1100);
+
+  const final = [
+    randSymbol(),
+    randSymbol(),
+    randSymbol()
+  ];
+
+  setTimeout(() => {
+    r1.textContent = final[0];
+    r2.textContent = final[1];
+    r3.textContent = final[2];
+
+    let win = 0;
+
+    if (final[0] === final[1] && final[1] === final[2]) {
+      win = payouts[final[0]] * bet;
+    }
+
+    if (win > 0) {
+      credits += win;
+      document.getElementById("credits").textContent = credits;
+      result.textContent = `WIN! +${win} credits`;
+
+      [r1, r2, r3].forEach(r => r.classList.add("win-glow", "shake"));
+      document.getElementById("winSound").play();
+    } else {
+      result.textContent = "No win.";
+    }
+
+  }, 1100);
+}
+
+function showPaytable() {
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("paytable").style.display = "block";
+}
+
+function closePaytable() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("paytable").style.display = "none";
+}
+</script>
+
+</body>
+</html>
